@@ -9,16 +9,16 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Compile demon.c to demon.exe
-echo [*] Compiling demon.c...
-gcc demon.c -o demon.exe -lwinmm
+:: Compile main.c to DemonPayload.exe
+echo [*] Compiling main.c...
+gcc main.c -o DemonPayload.exe -lwinmm
 
-if exist demon.exe (
-    echo [+] Build succeeded: demon.exe created.
+if exist DemonPayload.exe (
+    echo [+] Build succeeded: DemonPayload.exe created.
     echo [!] Running payload... (Only do this in a VM!)
-    demon.exe
+    DemonPayload.exe
 ) else (
-    echo [X] Compilation failed. Check for errors in demon.c.
+    echo [X] Compilation failed. Check for errors in main.c.
 )
 
 pause
