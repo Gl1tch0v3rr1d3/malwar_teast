@@ -1,0 +1,10 @@
+✅ 2. Compile It (use GCC)
+
+If you're on Windows and have MinGW or TDM-GCC installed, run this in your terminal (like CMD or PowerShell):
+
+gcc demon.c -o demon.exe -lwinmm
+
+This will output:
+
+demon.exe
+-lwinmm links the Windows Multimedia library so PlaySound works.
